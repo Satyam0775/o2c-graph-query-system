@@ -1,11 +1,15 @@
 import axios from 'axios'
 
+// ✅ BASE URL FROM ENV (Render backend)
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
+
+// ✅ Axios instance
 const api = axios.create({
-  baseURL: '/api',
-  timeout: 180000, // 🔥 FIX: increase timeout (3 min)
+  baseURL: API_BASE_URL,
+  timeout: 180000, // 3 min
 })
 
-// GLOBAL ERROR HANDLING
+// ✅ GLOBAL ERROR HANDLING
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -14,24 +18,26 @@ api.interceptors.response.use(
   }
 )
 
-// API CALLS
+// =========================
+// ✅ API CALLS (FIXED)
+// =========================
 
-export const loadData = () => api.post('/load-data')
+export const loadData = () => api.post('/api/load-data')
 
-export const getHealth = () => api.get('/health')
+export const getHealth = () => api.get('/api/health')
 
-export const getGraph = () => api.get('/graph')
+export const getGraph = () => api.get('/api/graph')
 
 export const getNode = (nodeId) =>
-  api.get(`/node/${encodeURIComponent(nodeId)}`)
+  api.get(`/api/node/${encodeURIComponent(nodeId)}`)
 
 export const getNodeNeighbors = (nodeId) =>
-  api.get(`/node/${encodeURIComponent(nodeId)}/neighbors`)
+  api.get(`/api/node/${encodeURIComponent(nodeId)}/neighbors`)
 
-// 🔥 FINAL FIX
+// ✅ QUERY
 export const runQuery = async (question) => {
-  const res = await api.post('/query', { question })
-  return res.data  // already final data
+  const res = await api.post('/api/query', { question })
+  return res.data
 }
 
 export default api
