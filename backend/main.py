@@ -10,12 +10,17 @@ from app.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
+
+# =========================
+# 🚀 STARTUP LOGIC
+# =========================
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("Starting O2C Graph Query System...")
+    logger.info("🚀 Starting O2C Graph Query System...")
 
+    # Create DB tables
     Base.metadata.create_all(bind=engine)
-    logger.info("Database tables created.")
+    logger.info("✅ Database tables created.")
 
     try:
         from sqlalchemy.orm import Session
@@ -25,10 +30,12 @@ async def lifespan(app: FastAPI):
         db: Session = SessionLocal()
 
         try:
-            count = db.execute(text("SELECT COUNT(*) FROM sales_order_headers")).fetchone()[0]
+            count = db.execute(
+                text("SELECT COUNT(*) FROM sales_order_headers")
+            ).fetchone()[0]
 
             if count == 0:
-                logger.info("No data found, auto-loading dataset...")
+                logger.info("📦 No data found, auto-loading dataset...")
 
                 from app.ingestion.loader import DataLoader
                 from app.ingestion.mapper import load_all_data
@@ -36,12 +43,14 @@ async def lifespan(app: FastAPI):
 
                 loader = DataLoader()
                 raw = loader.load_all()
+
                 load_all_data(db, raw)
                 build_graph(db)
 
-                logger.info("Dataset auto-loaded successfully.")
+                logger.info("✅ Dataset auto-loaded successfully.")
+
             else:
-                logger.info(f"Dataset already loaded ({count}). Building graph...")
+                logger.info(f"📊 Dataset already exists ({count}), rebuilding graph...")
 
                 from app.graph.graph_builder import build_graph
                 build_graph(db)
@@ -50,32 +59,45 @@ async def lifespan(app: FastAPI):
             db.close()
 
     except Exception as e:
-        logger.error(f"Startup error: {e}", exc_info=True)
+        logger.error(f"❌ Startup error: {e}", exc_info=True)
 
     yield
-    logger.info("Shutting down...")
+    logger.info("🛑 Shutting down...")
 
+
+# =========================
+# 🚀 FASTAPI APP
+# =========================
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
     lifespan=lifespan,
 )
 
+# =========================
+# 🌐 CORS (IMPORTANT FOR VERCEL)
+# =========================
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # allow all (safe for assignment)
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# 👉 IMPORTANT: PREFIX /api
+# =========================
+# 🔗 ROUTES (/api PREFIX)
+# =========================
 app.include_router(api_router, prefix=settings.API_PREFIX)
 
+
+# =========================
+# 🏠 ROOT CHECK
+# =========================
 @app.get("/")
 def root():
     return {
         "message": "O2C Graph Query System",
         "version": settings.VERSION,
-        "docs": "/docs"
+        "docs": "/docs",
     }
