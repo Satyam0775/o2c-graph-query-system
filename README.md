@@ -2,6 +2,10 @@
 
 A graph-based data modeling and natural language query system for SAP Order-to-Cash (O2C) process data. Structured business records — orders, deliveries, invoices, and payments — are loaded into a relational database, mapped to a graph, and made queryable through a conversational interface powered by an LLM.
 
+## 🚀 Live Demo
+
+Frontend (Vercel): https://o2c-graph-query-system-cyan.vercel.app  
+Backend API (Render): https://o2c-graph-query-system-1.onrender.com
 ---
 
 ## Features
